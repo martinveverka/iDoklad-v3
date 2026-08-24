@@ -101,7 +101,15 @@ class iDokladResponse {
             $parsed = $this->parseJSON($this->raw);
             $this->data = empty($parsed['Data']) ? $parsed : $parsed['Data'];
             $this->links = empty($parsed['Links']) ? null : $parsed['Links'];
-            $this->items = empty($parsed['Data']['Items']) ? $parsed : $parsed['Data']['Items'];
+            // Items must stay an array even when a list request matches nothing
+            // (Data.Items === []) or the endpoint isn't a list at all (no Items
+            // key). Falling back to the whole $parsed envelope here used to make
+            // getItems() return e.g. ['Success' => true, 'StatusCode' => 200, ...]
+            // instead of [], so callers doing foreach($response->getItems() as $item)
+            // ended up iterating booleans/ints instead of an empty result set.
+            $this->items = (isset($parsed['Data']['Items']) && is_array($parsed['Data']['Items']))
+                ? $parsed['Data']['Items']
+                : [];
             $this->totalItems = empty($parsed['Data']['TotalItems']) ? null : $parsed['Data']['TotalItems'];
             $this->totalPages = empty($parsed['Data']['TotalPages']) ? null : $parsed['Data']['TotalPages'];
         }
