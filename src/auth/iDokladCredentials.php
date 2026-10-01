@@ -112,7 +112,10 @@ class iDokladCredentials {
     public function loadFromJson($json){
         $arr = json_decode($json, true);
         foreach($arr as $key => $val){
-            $this->$key = $val;
+            // ignore unknown keys (e.g. token_type, scope), dynamic properties are deprecated since PHP 8.2
+            if(property_exists($this, $key)){
+                $this->$key = $val;
+            }
         }
     }
     
