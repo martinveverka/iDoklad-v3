@@ -84,6 +84,12 @@ Po založení objektu pouze zavoláme:
 $iDoklad->authCCF();
 ```
 
+Aktuální dokumentace API v3 uvádí pro client credentials flow token endpoint `https://identity.idoklad.cz/server/v2/connect/token`, který vyžaduje navíc application ID z [developer portálu](https://developer.idoklad.cz). Pokud application ID nastavíme, knihovna použije tento endpoint:
+```php
+$iDoklad->setApplicationId('Your application ID');
+$iDoklad->authCCF();
+```
+
 Jako u OAuth2 - Authorization code flow i zde funguje credentials callback.
 
 ## Odesílání požadavků na iDoklad api

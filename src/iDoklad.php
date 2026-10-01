@@ -120,6 +120,14 @@ class iDoklad {
     }
 
     /**
+     * Sets application id from iDoklad developer portal, client credentials flow then uses token endpoint v2
+     * @param string $applicationId
+     */
+    public function setApplicationId($applicationId){
+        $this->iDokladAuth->setApplicationId($applicationId);
+    }
+
+    /**
      * Authenticates via ccf method
      */
     public function authCCF(){
@@ -182,7 +190,6 @@ class iDoklad {
             CURLOPT_RETURNTRANSFER => 1,
             CURLOPT_URL => $this->url.'/'.$request->getMethod().'?'.$request->buildGetQuery(),
             CURLOPT_HTTPHEADER => $headers,
-            CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_HEADER => 1
         );
 

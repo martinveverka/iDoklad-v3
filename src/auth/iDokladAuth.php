@@ -30,6 +30,18 @@ class iDokladAuth {
     private $tokenUrl = 'https://identity.idoklad.cz/server/connect/token';
 
     /**
+     * Holds token URL for client credentials flow with application id
+     * @var string
+     */
+    private $tokenUrlV2 = 'https://identity.idoklad.cz/server/v2/connect/token';
+
+    /**
+     * Holds application id from iDoklad developer portal
+     * @var string|null
+     */
+    private $applicationId;
+
+    /**
      * Holds client id set by developer
      * @var string
      */
@@ -83,7 +95,7 @@ class iDokladAuth {
      * @param \mervit\iDoklad\auth\iDokladCredentials $credentials
      * @throws iDokladException
      */
-    public function auth($authType = self::AUTH_TYPE_OAUTH2, iDokladCredentials $credentials = null) {
+    public function auth($authType = self::AUTH_TYPE_OAUTH2, ?iDokladCredentials $credentials = null) {
         $this->credentials = $credentials;
         switch ($authType){
             case self::AUTH_TYPE_OAUTH2:
@@ -159,7 +171,12 @@ class iDokladAuth {
      */
     private function ccf(){
         $params = array('grant_type' => 'client_credentials', 'client_id' => $this->clientId, 'client_secret' => $this->clientSecret, 'scope' => 'idoklad_api');
-        $json = $this->curl($params);
+        $tokenUrl = $this->tokenUrl;
+        if(!empty($this->applicationId)){
+            $params['application_id'] = $this->applicationId;
+            $tokenUrl = $this->tokenUrlV2;
+        }
+        $json = $this->curl($params, $tokenUrl);
         $this->credentials = new iDokladCredentials($json, true);
         $this->credentials->addLastValidation(date('Y-m-d H:i:s'));
         $this->credentials->setAuthType(self::AUTH_TYPE_CCF);
@@ -170,14 +187,14 @@ class iDokladAuth {
     /**
      * Provides curl to get authentication json
      * @param array $params
+     * @param string|null $tokenUrl
      * @return string
      */
-    private function curl(array $params){
+    private function curl(array $params, $tokenUrl = null){
         $curl = curl_init();
         $curl_opt = array(
             CURLOPT_RETURNTRANSFER => 1,
-            CURLOPT_URL => $this->tokenUrl,
-            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_URL => $tokenUrl !== null ? $tokenUrl : $this->tokenUrl,
             CURLOPT_POSTFIELDS => http_build_query($params)
         );
         curl_setopt_array($curl, $curl_opt);
@@ -225,6 +242,14 @@ class iDokladAuth {
      */
     public function setCredentials(iDokladCredentials $credentials){
         $this->credentials = $credentials;
+    }
+
+    /**
+     * Sets application id from iDoklad developer portal (required by client credentials flow token endpoint v2)
+     * @param string $applicationId
+     */
+    public function setApplicationId($applicationId){
+        $this->applicationId = $applicationId;
     }
 
     /**
